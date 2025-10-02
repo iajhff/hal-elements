@@ -151,14 +151,18 @@ fn exec_decode<'a>(matches: &clap::ArgMatches<'a>) {
 		};
 		cmd::print_output(matches, &info)
 	} else {
-		let header: BlockHeader = match deserialize(&raw_tx) {
-			Ok(header) => header,
+		let block: Block = match deserialize(&raw_tx) {
+			Ok(block) => block,
 			Err(_) => {
-				let block: Block = deserialize(&raw_tx).expect("invalid block format");
-				block.header
-			}
+				let header: BlockHeader = deserialize(&raw_tx).expect("invalid block format");
+				let block = Block {
+					header: header,
+					txdata: Default::default(),
+				};
+				block
+			},
 		};
-		let info = ::GetInfo::get_info(&header, cmd::network(matches));
+		let info = ::GetInfo::get_info(&block, cmd::network(matches));
 		cmd::print_output(matches, &info)
 	}
 }
