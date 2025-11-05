@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Build
+        run: cargo build --release
+      
+      - name: Test version
+        run: |
+          cargo run --release -- --version
+      
+      - name: Test address create
+        run: |
+          cargo run --release -- elements address create --pubkey 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 --elementsregtest
+      
+      - name: Test address inspect
+        run: |
+          cargo run --release -- elements address inspect ert1qw508d6qejxtdg4y5r3zarvary0c5xw7kuu73e0
+      
+      - name: Test tx decode
+        run: |
+          cargo run --release -- elements tx decode 0200000000000000000000
+
