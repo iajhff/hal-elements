@@ -50,11 +50,11 @@ impl<'a> GetInfo<ParamsInfo> for dynafed::Params {
 					..
 				} => ParamsType::Full,
 			},
-		signblockscript: self.signblockscript().map(|s| s.to_bytes().into()),
-		signblock_witness_limit: self.signblock_witness_limit(),
-		elided_root: self.elided_root().map(|r| *r),
-		fedpeg_program: self.fedpeg_program().map(|p| p.to_bytes().into()),
-		fedpeg_script: self.fedpegscript().map(|s| s[..].into()),
+			signblockscript: self.signblockscript().map(|s| s.to_bytes().into()),
+			signblock_witness_limit: self.signblock_witness_limit(),
+			elided_root: self.elided_root().map(|r| *r),
+			fedpeg_program: self.fedpeg_program().map(|p| p.to_bytes().into()),
+			fedpeg_script: self.fedpegscript().map(|s| s[..].into()),
 			extension_space: self
 				.extension_space()
 				.map(|s| s.iter().map(|v| v[..].into()).collect()),

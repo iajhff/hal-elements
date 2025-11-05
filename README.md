@@ -24,3 +24,22 @@ $ cargo install --locked hal hal-elements
 	- create: create a binary transaction from JSON
 	- decode: decode a transaction to JSON
 
+# Examples
+
+```bash
+# Create addresses from public key
+hal-elements elements address create --pubkey <pubkey-hex> --elementsregtest
+
+# Inspect an address
+hal-elements elements address inspect <address>
+
+# Decode a transaction (JSON output)
+hal-elements elements tx decode <tx-hex>
+
+# Decode a transaction (YAML output)
+hal-elements elements tx decode --yaml <tx-hex>
+
+# Decode a block
+hal-elements elements block decode <block-hex>
+```
+

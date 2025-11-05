@@ -292,17 +292,17 @@ pub struct TransactionInfo {
 
 impl GetInfo<TransactionInfo> for Transaction {
 	fn get_info(&self, network: Network) -> TransactionInfo {
-	TransactionInfo {
-		txid: Some(self.txid()),
-		wtxid: Some(self.wtxid()),
-		hash: Some(self.wtxid()),
-		version: Some(self.version),
-		locktime: Some(self.lock_time.to_consensus_u32()),
-		size: Some(serialize(self).len()),
-		weight: Some(self.weight() as usize),
-		vsize: Some((self.weight() / 4) as usize),
-		inputs: Some(self.input.iter().map(|i| i.get_info(network)).collect()),
-		outputs: Some(self.output.iter().map(|o| o.get_info(network)).collect()),
-	}
+		TransactionInfo {
+			txid: Some(self.txid()),
+			wtxid: Some(self.wtxid()),
+			hash: Some(self.wtxid()),
+			version: Some(self.version),
+			locktime: Some(self.lock_time.to_consensus_u32()),
+			size: Some(serialize(self).len()),
+			weight: Some(self.weight() as usize),
+			vsize: Some((self.weight() / 4) as usize),
+			inputs: Some(self.input.iter().map(|i| i.get_info(network)).collect()),
+			outputs: Some(self.output.iter().map(|o| o.get_info(network)).collect()),
+		}
 	}
 }
