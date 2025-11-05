@@ -21,14 +21,24 @@ use serde::{Deserialize, Serialize};
 pub enum Network {
 	ElementsRegtest,
 	Liquid,
+	LiquidTestnet,
 }
 
 impl Network {
-	pub fn from_params(params: &'static AddressParams) -> Option<Network> {
-		match params {
-			&AddressParams::ELEMENTS => Some(Network::ElementsRegtest),
-			&AddressParams::LIQUID => Some(Network::Liquid),
-			_ => None,
+	pub fn from_params(params: &AddressParams) -> Option<Network> {
+		// Compare HRP and prefixes since AddressParams instances may not be pointer-equal
+		// even if they represent the same network
+		if params.bech_hrp == AddressParams::ELEMENTS.bech_hrp &&
+		   params.p2pkh_prefix == AddressParams::ELEMENTS.p2pkh_prefix {
+			Some(Network::ElementsRegtest)
+		} else if params.bech_hrp == AddressParams::LIQUID.bech_hrp &&
+		          params.p2pkh_prefix == AddressParams::LIQUID.p2pkh_prefix {
+			Some(Network::Liquid)
+		} else if params.bech_hrp == AddressParams::LIQUID_TESTNET.bech_hrp &&
+		          params.p2pkh_prefix == AddressParams::LIQUID_TESTNET.p2pkh_prefix {
+			Some(Network::LiquidTestnet)
+		} else {
+			None
 		}
 	}
 
@@ -36,6 +46,7 @@ impl Network {
 		match self {
 			Network::ElementsRegtest => &AddressParams::ELEMENTS,
 			Network::Liquid => &AddressParams::LIQUID,
+			Network::LiquidTestnet => &AddressParams::LIQUID_TESTNET,
 		}
 	}
 }

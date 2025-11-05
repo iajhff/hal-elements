@@ -65,8 +65,16 @@ fn exec_inspect<'a>(matches: &clap::ArgMatches<'a>) {
 	let address: Address = address_str.parse().expect("invalid address format");
 	let script_pk = address.script_pubkey();
 
+	let network = Network::from_params(address.params).unwrap_or_else(|| {
+		panic!(
+			"Unknown network for address. Supported networks: Elements (regtest), Liquid, Liquid Testnet. \
+			Address bech32 HRP: {:?}",
+			address.params.bech_hrp
+		)
+	});
+
 	let mut info = hal_elements::address::AddressInfo {
-		network: Network::from_params(address.params).expect("addresses always have params"),
+		network,
 		script_pub_key: hal::tx::OutputScriptInfo {
 			hex: Some(script_pk.to_bytes().into()),
 			asm: Some(script_pk.asm()),

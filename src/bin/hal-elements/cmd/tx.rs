@@ -186,7 +186,7 @@ fn create_pegin_witness(pd: PeginDataInfo, prevout: bitcoin::OutPoint) -> Vec<Ve
 	vec![
 		serialize(&pd.value),
 		serialize(&asset),
-		serialize(&pd.genesis_hash),
+		pd.genesis_hash.to_byte_array().to_vec(),
 		serialize(&pd.claim_script.0),
 		serialize(&pd.mainchain_tx_hex.0),
 		serialize(&pd.merkle_proof.0),
@@ -195,7 +195,7 @@ fn create_pegin_witness(pd: PeginDataInfo, prevout: bitcoin::OutPoint) -> Vec<Ve
 
 fn convert_outpoint_to_btc(p: elements::OutPoint) -> bitcoin::OutPoint {
 	bitcoin::OutPoint {
-		txid: bitcoin::Txid::from_inner(p.txid.into_inner()),
+		txid: bitcoin::Txid::from_raw_hash(bitcoin::hashes::Hash::from_byte_array(*p.txid.as_ref())),
 		vout: p.vout,
 	}
 }
@@ -287,13 +287,13 @@ fn create_script_pubkey(spk: OutputScriptInfo, used_network: &mut Option<Network
 			}
 		}
 
-		address.script_pubkey()
+		address.script_pubkey().into()
 	} else {
 		panic!("No scriptPubKey info provided.");
 	}
 }
 
-fn create_bitcoin_script_pubkey(spk: hal::tx::OutputScriptInfo) -> bitcoin::Script {
+fn create_bitcoin_script_pubkey(spk: hal::tx::OutputScriptInfo) -> bitcoin::ScriptBuf {
 	if spk.type_.is_some() {
 		warn!("Field \"type\" of output is ignored.");
 	}
@@ -307,7 +307,7 @@ fn create_bitcoin_script_pubkey(spk: hal::tx::OutputScriptInfo) -> bitcoin::Scri
 		}
 
 		//TODO(stevenroose) do script sanity check to avoid blackhole?
-		hex.0.into()
+		bitcoin::ScriptBuf::from_bytes(hex.0)
 	} else if let Some(_) = spk.asm {
 		if spk.address.is_some() {
 			warn!("Field \"address\" of output is ignored.");
@@ -315,7 +315,7 @@ fn create_bitcoin_script_pubkey(spk: hal::tx::OutputScriptInfo) -> bitcoin::Scri
 
 		panic!("Decoding script assembly is not yet supported.");
 	} else if let Some(address) = spk.address {
-		address.script_pubkey()
+		address.assume_checked().script_pubkey()
 	} else {
 		panic!("No scriptPubKey info provided.");
 	}
@@ -337,8 +337,8 @@ fn create_script_pubkey_from_pegout_data(
 ) -> Script {
 	let mut builder = elements::script::Builder::new()
 		.push_opcode(elements::opcodes::all::OP_RETURN)
-		.push_slice(&pd.genesis_hash.into_inner()[..])
-		.push_slice(&create_bitcoin_script_pubkey(pd.script_pub_key)[..]);
+		.push_slice(&pd.genesis_hash.to_byte_array())
+		.push_slice(create_bitcoin_script_pubkey(pd.script_pub_key).as_bytes());
 	for d in pd.extra_data {
 		builder = builder.push_slice(&d.0);
 	}
@@ -407,7 +407,7 @@ pub fn create_transaction(info: TransactionInfo) -> Transaction {
 
 	Transaction {
 		version: info.version.expect("Field \"version\" is required."),
-		lock_time: elements::PackedLockTime(info.locktime.expect("Field \"locktime\" is required.")),
+		lock_time: elements::LockTime::from_consensus(info.locktime.expect("Field \"locktime\" is required.")),
 		input: info
 			.inputs
 			.expect("Field \"inputs\" is required.")
